@@ -4,7 +4,10 @@ import { QuestionsService } from './questions.service';
 import { QuestionsController } from './questions.controller';
 import { Question, QuestionSchema } from './schemas/question.schema';
 import { Unite, UniteSchema } from '../categorie/unites/schema/unite.schema';
-import { Module as ModuleEntity, ModuleSchema } from '../categorie/modules/schema/module.schema';
+import {
+  Module as ModuleEntity,
+  ModuleSchema,
+} from '../categorie/modules/schema/module.schema';
 import { Cours, CoursSchema } from '../categorie/cours/schema/cours.schema';
 import { RolesGuard } from '../auth/guards/roles.guard';
 

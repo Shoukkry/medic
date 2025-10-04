@@ -6,7 +6,9 @@ import { UniteController } from './unite.controller';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Unite.name, schema: UniteSchema }])],
+  imports: [
+    MongooseModule.forFeature([{ name: Unite.name, schema: UniteSchema }]),
+  ],
   controllers: [UniteController],
   providers: [UniteService, RolesGuard],
   exports: [UniteService],

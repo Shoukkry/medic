@@ -1,4 +1,11 @@
-import { IsArray, IsInt, IsMongoId, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsInt,
+  IsMongoId,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class UpdateCoursDto {
   @IsOptional()
@@ -14,9 +21,4 @@ export class UpdateCoursDto {
   @IsOptional()
   @IsMongoId()
   module?: string;
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  pdfs?: string[];
 }

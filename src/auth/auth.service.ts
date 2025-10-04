@@ -1,8 +1,13 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { UsersService } from '../users/users.service';
 import { RegisterAdminDto } from './dto/register-admin.dto';
+import { RegisterDto } from './dto/register.dto';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -20,11 +25,22 @@ export class AuthService {
     private usersService: UsersService,
   ) {}
 
-  async registerLocal(dto: { username: string; email?: string; password: string; firstName?: string; lastName?: string; studyYear:number; }) {
-    const { username, email, password, firstName, lastName,studyYear } = dto;
+  async registerLocal(dto: RegisterDto) {
+    const {
+      username,
+      email,
+      password,
+      firstName,
+      lastName,
+      studyYear,
+      speciality,
+    } = dto;
 
-    const existed = await this.userModel.findOne({ $or: [{ username }, { email }] }).lean();
-    if (existed) throw new BadRequestException('Username or email already used');
+    const existed = await this.userModel
+      .findOne({ $or: [{ username }, { email }] })
+      .lean();
+    if (existed)
+      throw new BadRequestException('Username or email already used');
 
     const salt = await bcrypt.genSalt();
     const hash = await bcrypt.hash(password, salt);
@@ -36,6 +52,7 @@ export class AuthService {
       firstName,
       lastName,
       studyYear,
+      speciality,
       authProvider: ['email'],
       role: 'user',
     } as any);
@@ -77,7 +94,8 @@ export class AuthService {
 
   async validateUserByEmail(email: string, password: string) {
     const user = await this.userModel.findOne({ email });
-    if (!user || !user.passwordHash) throw new UnauthorizedException('Invalid credentials');
+    if (!user || !user.passwordHash)
+      throw new UnauthorizedException('Invalid credentials');
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
@@ -117,6 +135,8 @@ export class AuthService {
         firstName: user.firstName ?? null,
         lastName: user.lastName ?? null,
         studyYear: user.studyYear ?? null,
+        speciality: user.speciality ?? null,
+        authProvider: Array.isArray(user.authProvider) ? user.authProvider : [],
         role: user.role ?? 'user',
       },
     };
@@ -125,71 +145,74 @@ export class AuthService {
   // Google token-based login (frontend sends id_token)
   private googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-async verifyGoogleToken(idToken: string) {
-  try {
-    const ticket = await this.googleClient.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+  async verifyGoogleToken(idToken: string) {
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
 
-    const payload = ticket.getPayload();
-    if (!payload) throw new UnauthorizedException('Invalid Google token');
+      const payload = ticket.getPayload();
+      if (!payload) throw new UnauthorizedException('Invalid Google token');
 
-  const email = payload.email; // string garanti
-  const firstName = payload.given_name || '';
-  const lastName = payload.family_name || '';
-  const googleId = payload.sub;
+      const email = payload.email; // string garanti
+      const firstName = payload.given_name || '';
+      const lastName = payload.family_name || '';
+      const googleId = payload.sub;
 
-    // Vérifier ou créer l’utilisateur
+      // Vérifier ou créer l’utilisateur
 
-if (!email) {
-  throw new UnauthorizedException('We can not find your Google acount ');
-}
+      if (!email) {
+        throw new UnauthorizedException('We can not find your Google acount ');
+      }
 
-let user = await this.usersService.findByEmail(email);
-if (!user) {
-  user = await this.usersService.createByGoogle(email, firstName, lastName);
-}
+      let user = await this.usersService.findByEmail(email);
+      if (!user) {
+        user = await this.usersService.createByGoogle(
+          email,
+          firstName,
+          lastName,
+        );
+      }
 
-    return this.signUser(user as any);
-  } catch (err) {
-    throw new UnauthorizedException('Invalid Google token');
+      return this.signUser(user as any);
+    } catch (err) {
+      throw new UnauthorizedException('Invalid Google token');
+    }
   }
-}
-
 
   // Phone OTP flow: (1) send OTP (no code), (2) verify with code -> sign in / create
-async loginWithPhone(phone: string, code?: string) {
-  if (!code) {
-    // 1️⃣ Envoi OTP
-    return this.otpService.sendOtp(phone);
+  async loginWithPhone(phone: string, code?: string) {
+    if (!code) {
+      // 1️⃣ Envoi OTP
+      return this.otpService.sendOtp(phone);
+    }
+
+    // 2️⃣ Vérification OTP
+    const valid = this.otpService.verifyOtp(phone, code);
+    if (!valid) throw new BadRequestException('OTP invalide ou expiré');
+
+    // 3️⃣ Trouver ou créer l'utilisateur
+    let user = await this.usersService.findByPhone(phone);
+    if (!user) {
+      user = await this.usersService.createByPhone(phone);
+    }
+
+    // 4️⃣ Marquer comme vérifié si ce n'était pas le cas
+    if (!user.isVerified) {
+      user.isVerified = true;
+      await user.save();
+    }
+
+    // 5️⃣ Générer JWT
+    const payload = { sub: user._id, phone: user.phone };
+    return {
+      accessToken: this.jwtService.sign(payload),
+      user: {
+        id: user._id,
+        username: user.username,
+        phone: user.phone,
+      },
+    };
   }
-
-  // 2️⃣ Vérification OTP
-  const valid = this.otpService.verifyOtp(phone, code);
-  if (!valid) throw new BadRequestException('OTP invalide ou expiré');
-
-  // 3️⃣ Trouver ou créer l'utilisateur
-  let user = await this.usersService.findByPhone(phone);
-  if (!user) {
-    user = await this.usersService.createByPhone(phone);
-  }
-
-  // 4️⃣ Marquer comme vérifié si ce n'était pas le cas
-  if (!user.isVerified) {
-    user.isVerified = true;
-    await user.save();
-  }
-
-  // 5️⃣ Générer JWT
-  const payload = { sub: user._id, phone: user.phone };
-  return {
-    accessToken: this.jwtService.sign(payload),
-    user: {
-      id: user._id,
-      username: user.username,
-      phone: user.phone,
-    },
-  };
-}  
 }

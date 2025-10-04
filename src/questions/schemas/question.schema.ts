@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { SPECIALITIES, Speciality } from '../../common/specialities';
 
 @Schema({ timestamps: true, versionKey: false })
 export class Question extends Document {
@@ -17,6 +18,12 @@ export class Question extends Document {
 
   @Prop({ required: false })
   qcmYear?: number;
+
+  @Prop({ type: String, enum: SPECIALITIES, required: true, lowercase: true })
+  speciality: Speciality;
+
+  @Prop({ required: false })
+  university?: string;
 
   @Prop({ required: true, type: Types.ObjectId, ref: 'Unite' })
   unite: Types.ObjectId;

@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, UseGuards, Body } from '@nestjs/common';
+import { Controller, Get, Patch, UseGuards, Body, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetUser } from '../auth/get-user.decorator';
@@ -12,6 +12,11 @@ export class UsersController {
   @Get('me')
   getMe(@GetUser() user) {
     return this.usersService.findById(user._id);
+  }
+
+  @Get('search')
+  search(@Query('q') q: string, @Query('limit') limit = '10') {
+    return this.usersService.searchUsers(q, parseInt(String(limit), 10) || 10);
   }
 
   @Patch('me')

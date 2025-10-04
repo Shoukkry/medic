@@ -9,7 +9,6 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { OtpModule } from '../otp/otp.module';
 
-
 @Module({
   imports: [
     ConfigModule,
@@ -25,10 +24,7 @@ import { OtpModule } from '../otp/otp.module';
     UsersModule,
     OtpModule,
   ],
-  providers: [
-    AuthService,
-    JwtStrategy,
-  ],
+  providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })

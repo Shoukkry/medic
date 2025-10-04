@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { SPECIALITIES, Speciality } from '../../common/specialities';
 
 export type UserDocument = User & Document;
-
 
 export type AuthProvider = 'email' | 'google' | 'phone';
 
@@ -23,6 +23,12 @@ export class Stats {
   @Prop({ default: null }) bestScore?: number;
   @Prop({ default: 0 }) qcmAttempts?: number;
   @Prop({ default: null }) lastLogin?: Date;
+  @Prop({ default: 0 }) totalScore?: number;
+  @Prop({ default: 0 }) totalCorrect?: number;
+  @Prop({ default: 0 }) totalWrong?: number;
+  @Prop({ default: 0 }) totalSkipped?: number;
+  @Prop({ default: 0 }) totalTimeSpent?: number;
+  @Prop({ default: null }) lastActivityAt?: Date;
 }
 
 export const StatsSchema = SchemaFactory.createForClass(Stats);
@@ -30,7 +36,6 @@ export const StatsSchema = SchemaFactory.createForClass(Stats);
 @Schema()
 export class Favorites {
   @Prop({ type: [Types.ObjectId], default: [] }) questions: Types.ObjectId[];
-  @Prop({ type: [Types.ObjectId], default: [] }) pdfs: Types.ObjectId[];
 }
 
 export const FavoritesSchema = SchemaFactory.createForClass(Favorites);
@@ -49,7 +54,10 @@ export class User {
 
   @Prop() firstName?: string;
   @Prop() lastName?: string;
-  @Prop({ default: null }) studyYear: number;
+  @Prop({ default: null }) studyYear?: number;
+
+  @Prop({ type: String, enum: SPECIALITIES, default: null })
+  speciality?: Speciality;
 
   @Prop({
     type: [String],

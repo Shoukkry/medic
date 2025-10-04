@@ -5,8 +5,10 @@ import { QuestionsModule } from './questions/questions.module';
 import { UniteModule } from './categorie/unites/unite.module';
 import { ModuleModule } from './categorie/modules/module.module';
 import { CoursModule } from './categorie/cours/cours.module';
-import {AuthModule} from './auth/auth.module'
+import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { StatsModule } from './stats/stats.module';
+import { FriendsModule } from './friends/friends.module';
 
 @Module({
   imports: [
@@ -19,7 +21,8 @@ import { UsersModule } from './users/users.module';
           throw new Error('La variable MONGO_URI est requise.');
         }
 
-        const portValue = config.PORT !== undefined ? Number(config.PORT) : 3000;
+        const portValue =
+          config.PORT !== undefined ? Number(config.PORT) : 3000;
         if (Number.isNaN(portValue)) {
           throw new Error('La variable PORT doit être un nombre.');
         }
@@ -40,7 +43,9 @@ import { UsersModule } from './users/users.module';
         return {
           MONGO_URI: mongoUri,
           PORT: portValue,
-          ADMIN_SETUP_TOKEN: config.ADMIN_SETUP_TOKEN ? String(config.ADMIN_SETUP_TOKEN) : undefined,
+          ADMIN_SETUP_TOKEN: config.ADMIN_SETUP_TOKEN
+            ? String(config.ADMIN_SETUP_TOKEN)
+            : undefined,
           ALLOWED_ORIGINS: allowedOrigins,
           JWT_SECRET: jwtSecret,
           JWT_EXPIRES_IN: jwtExpiresIn,
@@ -63,8 +68,8 @@ import { UsersModule } from './users/users.module';
     ModuleModule,
     CoursModule,
     QuestionsModule,
-
-
+    StatsModule,
+    FriendsModule,
   ],
 })
 export class AppModule {}

@@ -33,14 +33,13 @@ export class ModuleController {
     return this.moduleService.findAll();
   }
 
-@Get('byUnite')
-async findByUnite(@Query('uniteId') uniteId: string) {
-  if (!uniteId) {
-    throw new BadRequestException('uniteId requis en paramètre');
+  @Get('byUnite')
+  async findByUnite(@Query('uniteId') uniteId: string) {
+    if (!uniteId) {
+      throw new BadRequestException('uniteId requis en paramètre');
+    }
+    return this.moduleService.findByUnite(uniteId);
   }
-  return this.moduleService.findByUnite(uniteId);
-}
-
 
   @Get(':id')
   findOne(@Param('id') id: string) {

@@ -14,9 +14,6 @@ export class Cours {
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Module', required: true })
   module: mongoose.Types.ObjectId;
-
-    @Prop({ type: [String], default: [] })
-  pdfs: string[]; // Contiendra les URLs des pdf}
 }
 
 export const CoursSchema = SchemaFactory.createForClass(Cours);

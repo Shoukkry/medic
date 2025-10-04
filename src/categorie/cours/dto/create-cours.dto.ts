@@ -1,14 +1,11 @@
 import {
-  IsArray,
   IsInt,
   IsMongoId,
   IsNotEmpty,
-  IsOptional,
   IsString,
   MaxLength,
   Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 export class CreateCoursDto {
   @IsString()
@@ -22,10 +19,4 @@ export class CreateCoursDto {
 
   @IsMongoId()
   module: string;
-
-  @IsOptional()
-  @IsArray()
-  @Type(() => String)
-  @IsString({ each: true })
-  pdfs?: string[];
 }

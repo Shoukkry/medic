@@ -1,4 +1,14 @@
-import { IsEmail, IsNotEmpty, MinLength, IsOptional, IsInt, Max, Min } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  MinLength,
+  IsOptional,
+  IsInt,
+  Max,
+  Min,
+  IsIn,
+} from 'class-validator';
+import { SPECIALITIES, Speciality } from '../../common/specialities';
 
 export class RegisterDto {
   @IsNotEmpty()
@@ -23,4 +33,7 @@ export class RegisterDto {
 
   @IsOptional()
   lastName?: string;
+
+  @IsIn(SPECIALITIES)
+  speciality: Speciality;
 }

@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Req, UseGuards, Get, BadRequestException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Req,
+  UseGuards,
+  Get,
+  BadRequestException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterAdminDto } from './dto/register-admin.dto';
@@ -21,7 +29,10 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() dto: LoginDto) {
-    const user = await this.authService.validateUserByEmail(dto.email, dto.password);
+    const user = await this.authService.validateUserByEmail(
+      dto.email,
+      dto.password,
+    );
     return this.authService.loginLocal(user);
   }
 
@@ -30,19 +41,17 @@ export class AuthController {
     return this.authService.loginAdmin(dto.email, dto.password);
   }
 
+  @Post('google/token')
+  async googleTokenLogin(@Body('id_token') idToken: string) {
+    if (!idToken) {
+      throw new BadRequestException('id_token manquant');
+    }
 
+    const userData = await this.authService.verifyGoogleToken(idToken);
 
-@Post('google/token')
-async googleTokenLogin(@Body('id_token') idToken: string) {
-  if (!idToken) {
-    throw new BadRequestException('id_token manquant');
+    // Ici tu crées/retrouves ton user en BDD
+    return userData;
   }
-
-  const userData = await this.authService.verifyGoogleToken(idToken);
-
-  // Ici tu crées/retrouves ton user en BDD
-  return userData;
-}
 
   // phone: POST /auth/phone { phone } -> send OTP
   // phone verify: POST /auth/phone/verify { phone, code } -> verify & return JWT

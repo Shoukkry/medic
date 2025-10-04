@@ -7,7 +7,9 @@ import { UpdateUniteDto } from './dto/update-unite.dto';
 
 @Injectable()
 export class UniteService {
-  constructor(@InjectModel(Unite.name) private uniteModel: Model<UniteDocument>) {}
+  constructor(
+    @InjectModel(Unite.name) private uniteModel: Model<UniteDocument>,
+  ) {}
 
   async create(data: CreateUniteDto) {
     const created = await this.uniteModel.create(data);
@@ -36,7 +38,11 @@ export class UniteService {
   }
 
   async delete(id: string) {
-    const deleted = await this.uniteModel.findByIdAndDelete(id).select('-__v').lean().exec();
+    const deleted = await this.uniteModel
+      .findByIdAndDelete(id)
+      .select('-__v')
+      .lean()
+      .exec();
     if (!deleted) {
       throw new NotFoundException('Unité introuvable');
     }

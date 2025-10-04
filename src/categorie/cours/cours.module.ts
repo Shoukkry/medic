@@ -6,7 +6,9 @@ import { CoursController } from './cours.controller';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Cours.name, schema: CoursSchema }])],
+  imports: [
+    MongooseModule.forFeature([{ name: Cours.name, schema: CoursSchema }]),
+  ],
   controllers: [CoursController],
   providers: [CoursService, RolesGuard],
 })

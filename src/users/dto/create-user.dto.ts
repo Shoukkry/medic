@@ -1,10 +1,17 @@
 // src/users/dto/create-user.dto.ts
-import { IsEmail, IsOptional, IsString, MinLength, IsNotEmpty } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  MinLength,
+  IsNotEmpty,
+  IsIn,
+} from 'class-validator';
+import { SPECIALITIES, Speciality } from '../../common/specialities';
 
 export class CreateUserDto {
   @IsString()
   username: string;
-
 
   @IsNotEmpty()
   studyYear: number;
@@ -14,7 +21,7 @@ export class CreateUserDto {
 
   @IsString()
   @MinLength(6)
-  passwordHash?: string; 
+  passwordHash?: string;
 
   @IsOptional()
   @IsString()
@@ -23,4 +30,8 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   lastName?: string;
+
+  @IsOptional()
+  @IsIn(SPECIALITIES)
+  speciality?: Speciality;
 }

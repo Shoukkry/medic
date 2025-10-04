@@ -26,6 +26,7 @@ async function seed() {
         studyYear: 2,
         profilePic: '',
         subscription: { type: 'free', expiresAt: null },
+        speciality: 'medecine',
       },
       {
         email: 'jane.smith@example.com',
@@ -36,6 +37,7 @@ async function seed() {
         studyYear: 4,
         profilePic: '',
         subscription: { type: 'premium', expiresAt: new Date('2026-01-01') },
+        speciality: 'dentaire',
       },
       {
         email: 'admin@example.com',
@@ -46,6 +48,7 @@ async function seed() {
         studyYear: 0,
         profilePic: '',
         subscription: { type: 'free', expiresAt: null },
+        speciality: 'pharmacie',
       },
     ];
 

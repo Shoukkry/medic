@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { Model } from 'mongoose';
@@ -55,8 +59,30 @@ export class UsersService {
     return this.userModel.findOne({ phone }).select('-passwordHash');
   }
 
+  async searchUsers(term: string, limit = 10) {
+    if (!term || !term.trim()) return [];
+    const sanitized = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(sanitized, 'i');
+    return this.userModel
+      .find({
+        $or: [
+          { username: regex },
+          { email: regex },
+          { firstName: regex },
+          { lastName: regex },
+        ],
+      })
+      .limit(Math.min(Math.max(limit, 1), 25))
+      .select('username firstName lastName email')
+      .lean();
+  }
+
   async createByPhone(phone: string) {
-    const username = await this.generateUniqueUsername(`user_${phone.slice(-4)}`);
+    const digits = (phone ?? '').replace(/\D/g, '');
+    const fallback = Math.floor(1000 + Math.random() * 9000).toString();
+    const suffix = digits.slice(-4) || fallback;
+    const username = await this.generateUniqueUsername(`user_${suffix}`);
+
     const user = new this.userModel({
       phone,
       username,
@@ -92,13 +118,61 @@ export class UsersService {
   }
 
   private async generateUniqueUsername(base: string) {
-    let candidate = base;
+    const safeBase =
+      base && base.trim().length > 0 ? base.trim() : `user_${Date.now()}`;
+    let candidate = safeBase;
     let suffix = 0;
     // Loop with small bound to avoid infinite in extreme cases
     while (await this.userModel.exists({ username: candidate })) {
       suffix += 1;
-      candidate = `${base}${suffix}`;
+      candidate = `${safeBase}${suffix}`;
     }
     return candidate;
+  }
+
+  async updateStatsAfterAttempt(
+    userId: string,
+    payload: {
+      score?: number;
+      correct?: number;
+      wrong?: number;
+      skipped?: number;
+      timeSpent?: number;
+    },
+  ) {
+    const user = await this.userModel.findById(userId).select('stats');
+    if (!user) return null;
+
+    const score = payload.score ?? 0;
+    const correct = payload.correct ?? 0;
+    const wrong = payload.wrong ?? 0;
+    const skipped = payload.skipped ?? 0;
+    const timeSpent = payload.timeSpent ?? 0;
+
+    const update: any = {
+      $inc: {
+        'stats.qcmAttempts': 1,
+        'stats.totalScore': score,
+        'stats.totalCorrect': correct,
+        'stats.totalWrong': wrong,
+        'stats.totalSkipped': skipped,
+        'stats.totalTimeSpent': timeSpent,
+      },
+      $set: {
+        'stats.lastScore': score,
+        'stats.lastActivityAt': new Date(),
+      },
+    };
+
+    const currentBest = user.stats?.bestScore ?? null;
+    if (currentBest === null || (score ?? 0) > currentBest) {
+      update.$set['stats.bestScore'] = score;
+    }
+
+    const updated = await this.userModel
+      .findByIdAndUpdate(userId, update, { new: true })
+      .select('-passwordHash');
+
+    return updated?.stats ?? null;
   }
 }

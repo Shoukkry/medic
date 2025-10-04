@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Question } from './schemas/question.schema';
@@ -6,6 +10,7 @@ import { CreateQuestionDto } from './dto/create-question.dto';
 import { Unite } from '../categorie/unites/schema/unite.schema';
 import { Module as ModuleEntity } from '../categorie/modules/schema/module.schema';
 import { Cours } from '../categorie/cours/schema/cours.schema';
+import { SPECIALITIES } from '../common/specialities';
 
 @Injectable()
 export class QuestionsService {
@@ -22,7 +27,9 @@ export class QuestionsService {
 
   async create(data: CreateQuestionDto) {
     const maxIndex = data.options.length - 1;
-    const normalizedCorrect = [...new Set(data.correctAnswer)].sort((a, b) => a - b);
+    const normalizedCorrect = [...new Set(data.correctAnswer)].sort(
+      (a, b) => a - b,
+    );
 
     if (normalizedCorrect.some((index) => index > maxIndex)) {
       throw new BadRequestException('Indice de réponse correcte hors limites.');
@@ -52,25 +59,37 @@ export class QuestionsService {
       throw new BadRequestException('Le cours est associé à un autre module.');
     }
 
+    const speciality =
+      data.speciality.toLowerCase() as (typeof SPECIALITIES)[number];
     const question = await this.questionModel.create({
       ...data,
+      speciality,
+      university: data.university?.trim() ?? undefined,
       correctAnswer: normalizedCorrect,
     });
 
     return this.findById(question.id);
   }
 
-  async findAll(filters: {
-    year?: number;
-    qcmYear?: number;
-    unite?: string[];
-    module?: string[];
-    cours?: string[];
-  } = {}) {
+  async findAll(
+    filters: {
+      year?: number;
+      qcmYear?: number;
+      unite?: string[];
+      module?: string[];
+      cours?: string[];
+      speciality?: string;
+      university?: string;
+    } = {},
+  ) {
     const query: any = {};
 
-    if (filters.year) query.year = filters.year;
-    if (filters.qcmYear) query.qcmYear = filters.qcmYear;
+    if (typeof filters.year === 'number' && !Number.isNaN(filters.year)) {
+      query.year = filters.year;
+    }
+    if (typeof filters.qcmYear === 'number' && !Number.isNaN(filters.qcmYear)) {
+      query.qcmYear = filters.qcmYear;
+    }
 
     if (filters.unite?.length) {
       query.unite = {
@@ -94,6 +113,16 @@ export class QuestionsService {
           .filter((id) => Types.ObjectId.isValid(id))
           .map((id) => new Types.ObjectId(id)),
       };
+    }
+
+    const speciality =
+      filters.speciality?.toLowerCase?.() ?? filters.speciality;
+    if (speciality && SPECIALITIES.includes(speciality as any)) {
+      query.speciality = speciality;
+    }
+
+    if (filters.university) {
+      query.university = filters.university.trim();
     }
 
     return this.questionModel
@@ -148,49 +177,71 @@ export class QuestionsService {
     return deleted;
   }
 
-async getRandom(
-  count: number,
-  filters: { unite?: string[]; module?: string[]; cours?: string[] } = {},
-) {
-  if (!Number.isInteger(count) || count <= 0) {
-    throw new BadRequestException('Le nombre de questions doit être un entier positif.');
+  async getRandom(
+    count: number,
+    filters: {
+      unite?: string[];
+      module?: string[];
+      cours?: string[];
+      speciality?: string;
+      year?: number;
+      university?: string;
+    } = {},
+  ) {
+    if (!Number.isInteger(count) || count <= 0) {
+      throw new BadRequestException(
+        'Le nombre de questions doit être un entier positif.',
+      );
+    }
+    const query: any = {};
+
+    if (filters.unite?.length) {
+      query.unite = {
+        $in: filters.unite
+          .filter((id) => Types.ObjectId.isValid(id))
+          .map((id) => new Types.ObjectId(id)),
+      };
+    }
+
+    if (filters.module?.length) {
+      query.module = {
+        $in: filters.module
+          .filter((id) => Types.ObjectId.isValid(id))
+          .map((id) => new Types.ObjectId(id)),
+      };
+    }
+
+    if (filters.cours?.length) {
+      query.cours = {
+        $in: filters.cours
+          .filter((id) => Types.ObjectId.isValid(id))
+          .map((id) => new Types.ObjectId(id)),
+      };
+    }
+
+    const speciality =
+      filters.speciality?.toLowerCase?.() ?? filters.speciality;
+    if (speciality && SPECIALITIES.includes(speciality as any)) {
+      query.speciality = speciality;
+    }
+
+    if (typeof filters.year === 'number' && !Number.isNaN(filters.year)) {
+      query.year = filters.year;
+    }
+
+    if (filters.university) {
+      query.university = filters.university.trim();
+    }
+
+    const randomDocs = await this.questionModel.aggregate([
+      { $match: query },
+      { $sample: { size: count } },
+    ]);
+
+    return this.questionModel.populate(randomDocs, [
+      { path: 'unite', select: 'nom' },
+      { path: 'module', select: 'nom' },
+      { path: 'cours', select: 'nom' },
+    ]);
   }
-  const query: any = {};
-
-  if (filters.unite?.length) {
-    query.unite = {
-      $in: filters.unite
-        .filter((id) => Types.ObjectId.isValid(id))
-        .map((id) => new Types.ObjectId(id)),
-    };
-  }
-
-  if (filters.module?.length) {
-    query.module = {
-      $in: filters.module
-        .filter((id) => Types.ObjectId.isValid(id))
-        .map((id) => new Types.ObjectId(id)),
-    };
-  }
-
-  if (filters.cours?.length) {
-    query.cours = {
-      $in: filters.cours
-        .filter((id) => Types.ObjectId.isValid(id))
-        .map((id) => new Types.ObjectId(id)),
-    };
-  }
-
-  const randomDocs = await this.questionModel.aggregate([
-    { $match: query },
-    { $sample: { size: count } },
-  ]);
-
-  return this.questionModel.populate(randomDocs, [
-    { path: 'unite', select: 'nom' },
-    { path: 'module', select: 'nom' },
-    { path: 'cours', select: 'nom' },
-  ]);
-}
-
 }

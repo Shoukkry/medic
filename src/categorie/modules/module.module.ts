@@ -6,7 +6,11 @@ import { ModuleController } from './module.controller';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: ModuleEntity.name, schema: ModuleSchema }])],
+  imports: [
+    MongooseModule.forFeature([
+      { name: ModuleEntity.name, schema: ModuleSchema },
+    ]),
+  ],
   controllers: [ModuleController],
   providers: [ModuleService, RolesGuard],
   exports: [ModuleService],

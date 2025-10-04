@@ -7,9 +7,11 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsIn,
   MaxLength,
   Min,
 } from 'class-validator';
+import { SPECIALITIES, Speciality } from '../../common/specialities';
 
 export class CreateQuestionDto {
   @IsString()
@@ -39,6 +41,14 @@ export class CreateQuestionDto {
   @IsInt()
   @Min(1900)
   qcmYear?: number;
+
+  @IsIn(SPECIALITIES)
+  speciality: Speciality;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  university?: string;
 
   @IsMongoId()
   unite: string;
