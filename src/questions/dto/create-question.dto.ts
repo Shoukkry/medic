@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsString,
   IsIn,
+  Max,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -34,7 +35,8 @@ export class CreateQuestionDto {
 
   @IsOptional()
   @IsInt()
-  @Min(1900)
+  @Min(1)
+  @Max(7)
   year?: number;
 
   @IsOptional()
