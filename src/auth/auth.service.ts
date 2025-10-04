@@ -204,15 +204,24 @@ export class AuthService {
       await user.save();
     }
 
-    // 5️⃣ Générer JWT
-    const payload = { sub: user._id, phone: user.phone };
-    return {
-      accessToken: this.jwtService.sign(payload),
-      user: {
-        id: user._id,
-        username: user.username,
-        phone: user.phone,
-      },
-    };
-  }
+  // 5️⃣ Générer JWT
+ const payload = { sub: user._id, phone: user.phone };
+  const authProviders = Array.isArray(user.authProvider) && user.authProvider.length > 0 ? user.authProvider : ['phone'];
+
+  return {
+    accessToken: this.jwtService.sign(payload),
+    user: {
+      id: String(user._id),
+      username: user.username,
+      phone: user.phone ?? null,
+      email: user.email ?? null,
+      firstName: user.firstName ?? null,
+      lastName: user.lastName ?? null,
+      studyYear: user.studyYear ?? null,
+      speciality: user.speciality ?? null,
+      authProvider: authProviders,
+      role: user.role ?? 'user',
+    },
+  };
+}
 }
