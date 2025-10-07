@@ -14,6 +14,11 @@ export class UpdateUniteDto {
   nom?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  speciality?: string;
+
+  @IsOptional()
   @IsInt()
   @Min(1)
   @Max(7)

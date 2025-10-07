@@ -13,6 +13,11 @@ export class CreateUniteDto {
   @MaxLength(150)
   nom: string;
 
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(150)
+  speciality: string;
+
   @IsInt()
   @Min(1)
   @Max(7)

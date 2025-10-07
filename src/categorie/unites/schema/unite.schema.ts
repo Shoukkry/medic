@@ -8,6 +8,9 @@ export class Unite {
   @Prop({ required: true })
   nom: string;
 
+  @Prop({ required: true })
+  speciality: string;
+
   @Prop({ required: true, min: 1, max: 7 })
   studyYear: number;
 }
