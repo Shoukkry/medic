@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { StatsModule } from './stats/stats.module';
 import { FriendsModule } from './friends/friends.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -40,6 +41,39 @@ import { FriendsModule } from './friends/friends.module';
           ? String(config.JWT_EXPIRES_IN)
           : '7d';
 
+        const smtpHost = config.SMTP_HOST ? String(config.SMTP_HOST) : '';
+        if (!smtpHost) {
+          throw new Error('La variable SMTP_HOST est requise.');
+        }
+
+        const smtpPortValue =
+          config.SMTP_PORT !== undefined ? Number(config.SMTP_PORT) : 587;
+        if (Number.isNaN(smtpPortValue)) {
+          throw new Error('La variable SMTP_PORT doit être un nombre.');
+        }
+
+        const smtpUser = config.SMTP_USER ? String(config.SMTP_USER) : '';
+        if (!smtpUser) {
+          throw new Error('La variable SMTP_USER est requise.');
+        }
+
+        const smtpPass = config.SMTP_PASS ? String(config.SMTP_PASS) : '';
+        if (!smtpPass) {
+          throw new Error('La variable SMTP_PASS est requise.');
+        }
+
+        const emailFrom = config.EMAIL_FROM ? String(config.EMAIL_FROM) : '';
+        if (!emailFrom) {
+          throw new Error('La variable EMAIL_FROM est requise.');
+        }
+
+        const verificationUrl = config.EMAIL_VERIFICATION_URL
+          ? String(config.EMAIL_VERIFICATION_URL)
+          : '';
+        if (!verificationUrl) {
+          throw new Error('La variable EMAIL_VERIFICATION_URL est requise.');
+        }
+
         return {
           MONGO_URI: mongoUri,
           PORT: portValue,
@@ -49,6 +83,12 @@ import { FriendsModule } from './friends/friends.module';
           ALLOWED_ORIGINS: allowedOrigins,
           JWT_SECRET: jwtSecret,
           JWT_EXPIRES_IN: jwtExpiresIn,
+          SMTP_HOST: smtpHost,
+          SMTP_PORT: smtpPortValue,
+          SMTP_USER: smtpUser,
+          SMTP_PASS: smtpPass,
+          EMAIL_FROM: emailFrom,
+          EMAIL_VERIFICATION_URL: verificationUrl,
         };
       },
     }),
@@ -70,6 +110,7 @@ import { FriendsModule } from './friends/friends.module';
     QuestionsModule,
     StatsModule,
     FriendsModule,
+    MailModule,
   ],
 })
 export class AppModule {}

@@ -2,16 +2,15 @@ import {
   Body,
   Controller,
   Post,
-  Req,
-  UseGuards,
   Get,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterAdminDto } from './dto/register-admin.dto';
 import { LoginDto } from './dto/login.dto';
-import { AuthGuard } from '@nestjs/passport';
+import { ResendVerificationDto } from './dto/resend-verification.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -63,5 +62,21 @@ export class AuthController {
   @Post('phone/verify')
   async verifyPhone(@Body('phone') phone: string, @Body('code') code: string) {
     return this.authService.loginWithPhone(phone, code);
+  }
+
+  @Get('verify-email')
+  async verifyEmail(
+    @Query('userId') userId: string,
+    @Query('token') token: string,
+  ) {
+    if (!userId || !token) {
+      throw new BadRequestException('Paramètres de vérification manquants.');
+    }
+    return this.authService.verifyEmail(userId, token);
+  }
+
+  @Post('verify-email/resend')
+  async resendEmailVerification(@Body() dto: ResendVerificationDto) {
+    return this.authService.resendVerification(dto.email);
   }
 }

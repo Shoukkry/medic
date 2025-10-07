@@ -50,6 +50,15 @@ export class User {
   @Prop({ default: false })
   isVerified?: boolean;
 
+  @Prop({ select: false })
+  verificationTokenHash?: string;
+
+  @Prop({ type: Date, select: false })
+  verificationTokenExpiresAt?: Date;
+
+  @Prop({ type: Date })
+  verifiedAt?: Date;
+
   @Prop({ unique: true, sparse: true }) phone?: string; // <-- ajout du champ phone
 
   @Prop() firstName?: string;

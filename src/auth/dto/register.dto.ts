@@ -15,8 +15,8 @@ export class RegisterDto {
   username: string;
 
   @IsEmail()
-  @IsOptional()
-  email?: string;
+  @IsNotEmpty()
+  email: string;
 
   @IsInt()
   @IsNotEmpty()

@@ -19,7 +19,8 @@ export class UsersService {
   }
 
   async findByEmail(email: string) {
-    return this.userModel.findOne({ email }).select('-passwordHash');
+    const normalized = email.trim().toLowerCase();
+    return this.userModel.findOne({ email: normalized }).select('-passwordHash');
   }
 
   async updateProfile(id: string, dto: UpdateUserDto) {
@@ -88,20 +89,23 @@ export class UsersService {
       username,
       authProvider: ['phone'],
       isVerified: true,
+      verifiedAt: new Date(),
     });
     await user.save();
     return user;
   }
 
   async createByGoogle(email: string, firstName?: string, lastName?: string) {
-    const base = email.split('@')[0];
+    const normalizedEmail = email.trim().toLowerCase();
+    const base = normalizedEmail.split('@')[0];
     const username = await this.generateUniqueUsername(base);
     const user = new this.userModel({
-      email,
+      email: normalizedEmail,
       username,
       firstName,
       lastName,
       isVerified: true,
+      verifiedAt: new Date(),
       authProvider: ['google'],
     });
     await user.save();

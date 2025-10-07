@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { OtpModule } from '../otp/otp.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { OtpModule } from '../otp/otp.module';
     }),
     UsersModule,
     OtpModule,
+    MailModule,
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
