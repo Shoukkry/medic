@@ -23,9 +23,14 @@ export class ModuleService {
     return this.findOne(created.id);
   }
 
-  findAll() {
+  findAll(studyYear?: number) {
+    const filters: Record<string, any> = {};
+    if (typeof studyYear === 'number' && !Number.isNaN(studyYear)) {
+      filters.studyYear = studyYear;
+    }
+
     return this.moduleModel
-      .find()
+      .find(filters)
       .populate('unite', 'nom')
       .select('-__v')
       .lean()
@@ -41,15 +46,15 @@ export class ModuleService {
       .exec();
   }
 
-  async findByUnite(uniteId: string) {
+  async findByUnite(uniteId: string, studyYear?: number) {
     if (!Types.ObjectId.isValid(uniteId)) {
       throw new BadRequestException("Identifiant d'unité invalide");
     }
-    return this.moduleModel
-      .find({ unite: uniteId })
-      .select('-__v')
-      .lean()
-      .exec();
+    const filters: Record<string, any> = { unite: uniteId };
+    if (typeof studyYear === 'number' && !Number.isNaN(studyYear)) {
+      filters.studyYear = studyYear;
+    }
+    return this.moduleModel.find(filters).select('-__v').lean().exec();
   }
 
   async update(id: string, data: UpdateModuleDto) {

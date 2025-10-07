@@ -1,11 +1,12 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
+  Controller,
+  Delete,
+  Get,
   Param,
   Patch,
-  Delete,
+  Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { UniteService } from './unite.service';
@@ -27,8 +28,12 @@ export class UniteController {
   }
 
   @Get()
-  findAll() {
-    return this.uniteService.findAll();
+  findAll(@Query('studyYear') studyYear?: string) {
+    const parsedStudyYear = Number(studyYear);
+    const resolvedStudyYear = Number.isNaN(parsedStudyYear)
+      ? undefined
+      : parsedStudyYear;
+    return this.uniteService.findAll(resolvedStudyYear);
   }
 
   @Get(':id')

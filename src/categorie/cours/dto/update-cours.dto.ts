@@ -3,6 +3,7 @@ import {
   IsMongoId,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -15,8 +16,9 @@ export class UpdateCoursDto {
 
   @IsOptional()
   @IsInt()
-  @Min(1900)
-  qcmyear?: number;
+  @Min(1)
+  @Max(7)
+  studyYear?: number;
 
   @IsOptional()
   @IsMongoId()

@@ -7,6 +7,9 @@ export type UniteDocument = Unite & Document;
 export class Unite {
   @Prop({ required: true })
   nom: string;
+
+  @Prop({ required: true, min: 1, max: 7 })
+  studyYear: number;
 }
 
 export const UniteSchema = SchemaFactory.createForClass(Unite);

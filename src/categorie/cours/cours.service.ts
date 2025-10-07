@@ -23,9 +23,14 @@ export class CoursService {
     return this.findOne(created.id);
   }
 
-  findAll() {
+  findAll(studyYear?: number) {
+    const filters: Record<string, any> = {};
+    if (typeof studyYear === 'number' && !Number.isNaN(studyYear)) {
+      filters.studyYear = studyYear;
+    }
+
     return this.coursModel
-      .find()
+      .find(filters)
       .populate({
         path: 'module',
         select: 'nom unite',
@@ -36,15 +41,15 @@ export class CoursService {
       .exec();
   }
 
-  async findByUnite(moduleId: string) {
+  async findByUnite(moduleId: string, studyYear?: number) {
     if (!Types.ObjectId.isValid(moduleId)) {
       throw new BadRequestException('Identifiant de module invalide');
     }
-    return this.coursModel
-      .find({ module: moduleId })
-      .select('-__v')
-      .lean()
-      .exec();
+    const filters: Record<string, any> = { module: moduleId };
+    if (typeof studyYear === 'number' && !Number.isNaN(studyYear)) {
+      filters.studyYear = studyYear;
+    }
+    return this.coursModel.find(filters).select('-__v').lean().exec();
   }
 
   findOne(id: string) {

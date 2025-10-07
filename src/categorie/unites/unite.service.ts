@@ -16,8 +16,13 @@ export class UniteService {
     return this.findOne(created.id);
   }
 
-  findAll() {
-    return this.uniteModel.find().select('-__v').lean().exec();
+  findAll(studyYear?: number) {
+    const filters: Record<string, any> = {};
+    if (typeof studyYear === 'number' && !Number.isNaN(studyYear)) {
+      filters.studyYear = studyYear;
+    }
+
+    return this.uniteModel.find(filters).select('-__v').lean().exec();
   }
 
   findOne(id: string) {

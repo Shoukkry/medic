@@ -193,38 +193,42 @@ export class AuthService {
     if (!valid) throw new BadRequestException('OTP invalide ou expiré');
 
     // 3️⃣ Trouver ou créer l'utilisateur
-  let user = await this.usersService.findByPhone(phone);
-  if (!user) {
-    user = await this.usersService.createByPhone(phone);
+    let user = await this.usersService.findByPhone(phone);
+    if (!user) {
+      user = await this.usersService.createByPhone(phone);
+    }
+
+    if (!user.isVerified) {
+      user.isVerified = true;
+      await user.save();
+    }
+
+    const freshUser = await this.userModel
+      .findById(user._id)
+      .select('-passwordHash')
+      .lean();
+
+    const payload = { sub: user._id, phone: user.phone };
+    const authProviders =
+      Array.isArray(freshUser?.authProvider) &&
+      freshUser.authProvider.length > 0
+        ? freshUser.authProvider
+        : ['phone'];
+
+    return {
+      accessToken: this.jwtService.sign(payload),
+      user: {
+        id: String(user._id),
+        username: freshUser?.username ?? user.username,
+        phone: freshUser?.phone ?? user.phone ?? null,
+        email: freshUser?.email ?? user.email ?? null,
+        firstName: freshUser?.firstName ?? user.firstName ?? null,
+        lastName: freshUser?.lastName ?? user.lastName ?? null,
+        studyYear: freshUser?.studyYear ?? user.studyYear ?? null,
+        speciality: freshUser?.speciality ?? user.speciality ?? null,
+        authProvider: authProviders,
+        role: freshUser?.role ?? user.role ?? 'user',
+      },
+    };
   }
-
-  if (!user.isVerified) {
-    user.isVerified = true;
-    await user.save();
-  }
-
-  const freshUser = await this.userModel
-    .findById(user._id)
-    .select('-passwordHash')
-    .lean();
-
-  const payload = { sub: user._id, phone: user.phone };
-  const authProviders = Array.isArray(freshUser?.authProvider) && freshUser.authProvider.length > 0 ? freshUser.authProvider : ['phone'];
-
-  return {
-    accessToken: this.jwtService.sign(payload),
-    user: {
-      id: String(user._id),
-      username: freshUser?.username ?? user.username,
-      phone: freshUser?.phone ?? user.phone ?? null,
-      email: freshUser?.email ?? user.email ?? null,
-      firstName: freshUser?.firstName ?? user.firstName ?? null,
-      lastName: freshUser?.lastName ?? user.lastName ?? null,
-      studyYear: freshUser?.studyYear ?? user.studyYear ?? null,
-      speciality: freshUser?.speciality ?? user.speciality ?? null,
-      authProvider: authProviders,
-      role: freshUser?.role ?? user.role ?? 'user',
-    },
-  };
-}
 }

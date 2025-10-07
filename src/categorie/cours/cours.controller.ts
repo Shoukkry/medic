@@ -29,16 +29,27 @@ export class CoursController {
   }
 
   @Get()
-  findAll() {
-    return this.coursService.findAll();
+  findAll(@Query('studyYear') studyYear?: string) {
+    const parsedStudyYear = Number(studyYear);
+    const resolvedStudyYear = Number.isNaN(parsedStudyYear)
+      ? undefined
+      : parsedStudyYear;
+    return this.coursService.findAll(resolvedStudyYear);
   }
 
   @Get('byModule')
-  async findByUnite(@Query('moduleId') moduleId: string) {
+  async findByUnite(
+    @Query('moduleId') moduleId: string,
+    @Query('studyYear') studyYear?: string,
+  ) {
     if (!moduleId) {
       throw new BadRequestException('moduleId requis en paramètre');
     }
-    return this.coursService.findByUnite(moduleId);
+    const parsedStudyYear = Number(studyYear);
+    const resolvedStudyYear = Number.isNaN(parsedStudyYear)
+      ? undefined
+      : parsedStudyYear;
+    return this.coursService.findByUnite(moduleId, resolvedStudyYear);
   }
 
   @Get(':id')

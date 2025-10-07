@@ -3,6 +3,7 @@ import {
   IsMongoId,
   IsNotEmpty,
   IsString,
+  Max,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -14,8 +15,9 @@ export class CreateCoursDto {
   nom: string;
 
   @IsInt()
-  @Min(1900)
-  qcmyear: number;
+  @Min(1)
+  @Max(7)
+  studyYear: number;
 
   @IsMongoId()
   module: string;

@@ -9,10 +9,14 @@ export class Cours {
   @Prop({ required: true })
   nom: string;
 
-  @Prop({ required: true })
-  qcmyear: number;
+  @Prop({ required: true, min: 1, max: 7 })
+  studyYear: number;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Module', required: true })
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Module.name,
+    required: true,
+  })
   module: mongoose.Types.ObjectId;
 }
 
